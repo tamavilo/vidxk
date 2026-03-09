@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player | videyoco.pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-tertiary: #ec4899;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --glass-bg: rgba(26, 26, 46, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body,
+        html {
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        /* Animated background gradient orbs */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            top: -200px;
+            right: -200px;
+            animation: float-orb 20s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, var(--accent-secondary), var(--accent-tertiary));
+            bottom: -150px;
+            left: -150px;
+            animation: float-orb 25s ease-in-out infinite reverse;
+        }
+
+        @keyframes float-orb {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(50px, -50px) scale(1.1);
+            }
+
+            66% {
+                transform: translate(-30px, 30px) scale(0.9);
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 1100px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            padding: 2rem;
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            box-shadow:
+                0 20px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+                0 0 100px rgba(99, 102, 241, 0.1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .video-wrapper:hover {
+            transform: translateY(-4px);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+                0 0 120px rgba(99, 102, 241, 0.2);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Category Buttons */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .folder-btn {
+            position: relative;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--text-primary);
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        .folder-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .folder-btn:hover::before {
+            opacity: 0.15;
+        }
+
+        .folder-btn i {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .folder-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .folder-btn:hover {
+            transform: translateY(-3px);
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .folder-btn:hover i {
+            transform: scale(1.15) rotate(-5deg);
+        }
+
+        .folder-btn:active {
+            transform: translateY(-1px);
+        }
+
+        /* Video Player */
+        .video-container {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            display: block;
+            outline: none;
+        }
+
+        /* Marquee */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            padding: 1.25rem 0;
+            margin-top: 1.5rem;
+            white-space: nowrap;
+            position: relative;
+            background: linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(99, 102, 241, 0.05) 50%,
+                    transparent 100%);
+            border-radius: 12px;
+        }
+
+        .marquee-content {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+            font-size: 1rem;
+            font-weight: 600;
+            background: linear-gradient(90deg,
+                    var(--accent-primary),
+                    var(--accent-secondary),
+                    var(--accent-tertiary),
+                    var(--accent-primary));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: scroll 20s linear infinite, gradient-shift 3s ease infinite;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        @keyframes gradient-shift {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        /* Telegram Floating Button */
+        .telegram-floating-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            color: #fff;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            z-index: 1000;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .telegram-floating-btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-tertiary));
+            border-radius: 50px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+            filter: blur(10px);
+        }
+
+        .telegram-floating-btn:hover::before {
+            opacity: 0.7;
+        }
+
+        .telegram-floating-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.6);
+        }
+
+        .telegram-floating-btn i {
+            font-size: 1.25rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1.5rem 1rem;
+            }
+
+            .video-wrapper {
+                padding: 1.5rem;
+                border-radius: 24px;
+            }
+
+            .button-group {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+
+            .folder-btn {
+                padding: 0.875rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            .folder-btn i {
+                font-size: 1.1rem;
+            }
+
+            .telegram-floating-btn {
+                bottom: 1.5rem;
+                right: 1.5rem;
+                padding: 0.875rem 1.5rem;
+                font-size: 0.875rem;
+            }
+
+            .marquee-content {
+                font-size: 0.9rem;
+            }
+
+            video {
+                max-height: 60vh;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem 0.75rem;
+            }
+
+            .video-wrapper {
+                padding: 1rem;
+                border-radius: 20px;
+            }
+
+            .button-group {
+                gap: 0.5rem;
+            }
+
+            .folder-btn {
+                padding: 0.75rem 0.875rem;
+                font-size: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .folder-btn i {
+                font-size: 1rem;
+            }
+
+            .telegram-floating-btn {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.75rem 1.25rem;
+                font-size: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .telegram-floating-btn i {
+                font-size: 1.1rem;
+            }
+
+            .marquee-content {
+                font-size: 0.85rem;
+            }
+
+            video {
+                max-height: 50vh;
+            }
+        }
+
+        /* Loading animation for video */
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        video:not([src]) {
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="video-wrapper">
+            <!-- Category Buttons -->
+            <div class="button-group">
+                <a href="https://ey43.com/4/10413165" class="folder-btn">
+                    <i class="fas fa-folder"></i>
+                    <span>SMP</span>
+                </a>
+                <a href="https://ey43.com/4/10413165" class="folder-btn">
+                    <i class="fas fa-folder"></i>
+                    <span>Bocil</span>
+                </a>
+                <a href="https://ey43.com/4/10413165" class="folder-btn">
+                    <i class="fas fa-folder"></i>
+                    <span>SMA</span>
+                </a>
+            </div>
+
+            <!-- Video Player -->
+            <div class="video-container">
+                <video id="videoPlayer" controls playsinline>
+                    <source src="" id="videoSource" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+
+            <!-- Marquee -->
+            <div class="marquee-container">
+                <div class="marquee-content">
+                    JOIN CHANNEL WA KAMI ❤️ &nbsp;&nbsp;&nbsp;&nbsp; JOIN CHANNEL WA ❤️
+                    &nbsp;&nbsp;&nbsp;&nbsp; JOIN CHANNEL WA KAMI ❤️ &nbsp;&nbsp;&nbsp;&nbsp; JOIN CHANNEL WA KAMI
+                    ❤️
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Telegram Floating Button -->
+    <a href="https://t.me/+5uCZAHdPxhFkYzM1" target="_blank" class="telegram-floating-btn">
+        <i class="fab fa-whatsapp"></i>
+        <span>Join Now</span>
+    </a>
+
+</body>
+<script>
+  const api = "https://script.google.com/macros/s/AKfycbzD8Q9gXUBUkI7jwzwgjc22CwSeeOb5QS0GRVLHcXu_tSG-DJb0SL7nI4_yh7FZ_mKU/exec?id=17";
+  const video = document.getElementById("videoPlayer");
+    const source = document.getElementById("videoSource");
+  
+fetch(api)
+  .then(res => res.json())
+  .then(data => {
+    const item = data[0];
+  source.src = `${item.video}`;
+    video.load();
+    });
+</script>
+
+</html>
